@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Pack Opening</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        
+        body {
+            background-color: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        
+        .pack-container {
+            width: 100%;
+            max-width: 400px;
+            height: 85vh;
+            background: linear-gradient(135deg, #6c5ce7, #4834d4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pack-cover {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            background: linear-gradient(135deg, #8e44ad, #6c5ce7);
+            position: absolute;
+            z-index: 100;
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        
+        .pack-cover.hidden {
+            transform: translateY(-100%);
+        }
+        
+        .pack-info {
+            width: 90%;
+            margin-top: 20px;
+            text-align: right;
+        }
+        
+        .pack-number {
+            color: white;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        .pack-logo {
+            width: 90%;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            margin-top: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .pack-image {
+            width: 80%;
+            height: 60%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pack-name {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        .open-button {
+            width: 180px;
+            height: 50px;
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 10px rgba(39, 174, 96, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .open-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 3px 5px rgba(39, 174, 96, 0.3);
+        }
+        
+        .open-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1) translate(-50%, -50%);
+            transform-origin: 0 0;
+        }
+        
+        .open-button:active::after {
+            opacity: 1;
+            transform: scale(20) translate(-50%, -50%);
+            transition: all 0.6s ease-out;
+        }
+        
+        .card-viewer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .card-container {
+            width: 100%;
+            height: 80%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .card {
+
+            height: 80%;
+            background: linear-gradient(145deg, #ffffff2c, #f0f0f0c0);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            position: absolute;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: translateX(150%) scale(0.8);
+            opacity: 0;
+            z-index: 1;
+        }
+        
+        .card.active {
+            transform: translateX(0) scale(1);
+            opacity: 1;
+            z-index: 5;
+        }
+        
+        .card.prev {
+            transform: translateX(-150%) scale(0.8);
+            opacity: 0;
+            z-index: 1;
+        }
+        
+        
+        
+        .card-top {
+            width: 100%;
+            height: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 12px;
+            color: #333;
+        }
+        
+        .card-name {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .card-type {
+            background-color: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-image {
+            background: linear-gradient(145deg, #e6e6e6, #f5f5f5);
+            border-radius: 8px;
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            text-align: center;
+            font-size: 14px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .card-rarity {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 10px;
+            color: #ffffff;
+        }
+        
+        .card-bottom {
+            width: 100%;
+            height: 24px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            font-size: 12px;
+            color: #333;
+        }
+        
+        .rarity-indicator {
+            width: 80%;
+            height: 4px;
+            background-color: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .rarity-fill {
+            height: 100%;
+            border-radius: 2px;
+        }
+        
+        .rarity-common {
+            width: 30%;
+            background-color: #95a5a6;
+        }
+        
+        .rarity-uncommon {
+            width: 60%;
+            background-color: #3498db;
+        }
+        
+        .rarity-rare {
+            width: 80%;
+            background-color: #9b59b6;
+        }
+        
+        .rarity-ultra {
+            width: 100%;
+            background: linear-gradient(to right, #f1c40f, #e74c3c);
+        }
+
+        .shine-effect {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.3) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: skewX(-25deg);
+        }
+        
+        .card.active .shine-effect {
+            animation: shine 2s infinite;
+            animation-delay: 0.5s;
+        }
+        
+        @keyframes shine {
+            0% {left: -100%;}
+            20% {left: 100%;}
+            100% {left: 100%;}
+        }
+        
+        .tap-indicator {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 14px;
+            opacity: 0.8;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {opacity: 0.4;}
+            50% {opacity: 0.8;}
+            100% {opacity: 0.4;}
+        }
+        
+        .tap-icon {
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        
+        .card-counter {
+            color: white;
+            font-size: 16px;
+            margin-top: 20px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 5px 15px;
+            border-radius: 15px;
+        }
+        
+        .summary-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #6c5ce7, #4834d4);
+            position: absolute;
+            z-index: 99;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: translateX(100%);
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            padding: 20px;
+        }
+        
+        .summary-screen.active {
+            transform: translateX(0);
+        }
+        
+        .summary-title {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .summary-cards {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin: 10px 0 20px;
+            padding: 10px;
+        }
+        
+        .summary-card {
+            width: 100%;
+            aspect-ratio: 2/3;
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #333;
+            text-align: center;
+            transition: transform 0.3s ease;
+            padding: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .summary-card:active {
+            transform: scale(0.95);
+        }
+        
+        .card-mini-image {
+            width: 100%;
+            height: 65%;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: #666;
+        }
+        .card-mini-image img {
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .card-mini-name {
+            font-weight: bold;
+            font-size: 9px;
+            margin-bottom: 2px;
+        }
+        
+        .card-mini-type {
+            font-size: 8px;
+            color: #666;
+        }
+        
+        .restart-button {
+            width: 180px;
+            height: 50px;
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            box-shadow: 0 6px 10px rgba(231, 76, 60, 0.3);
+        }
+        
+        .restart-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 3px 5px rgba(231, 76, 60, 0.3);
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f39c12;
+            opacity: 0;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100%) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        .swipe-area {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+        
+        .progress-bar {
+            width: 80%;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .pack-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .card-art {
+            width: 20%;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+        @media screen and (max-width: 768px) {
+            .card-art {
+                width: 80%;
+            }
+            
+        }
+
+    </style>
+</head>
+<body>
+    <div class="pack-container">
+        <!-- Pack Cover -->
+        <div class="pack-cover">
+            <div class="pack-info">
+                <div class="pack-number">Pack no. 1</div>
+            </div>
+            <div class="pack-logo">GENETIC APEX</div>
+            <div class="pack-image">
+                <img src="pack2.jpg" alt="Pack Image" />
+            </div>
+            <button class="open-button">OPEN</button>
+        </div>
+        
+        <!-- Card Viewer -->
+        <div class="card-viewer">
+            <div class="card-container">
+                <!-- Cards will be generated here -->
+            </div>
+            
+            <div class="tap-indicator">
+                <div class="tap-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M8 13v-1h1v1H8z"></path>
+                        <path d="M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"></path>
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
+                    </svg>
+                </div>
+                <span>Tap to continue</span>
+            </div>
+            
+            <div class="card-counter">Card 1/5</div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            
+            <div class="swipe-area"></div>
+        </div>
+        
+        <!-- Summary Screen -->
+        <div class="summary-screen">
+            <h2 class="summary-title">Your Cards</h2>
+            <div class="summary-cards">
+                <!-- Summary cards will be generated here -->
+            </div>
+            <button class="restart-button">Open New Pack</button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const packCover = document.querySelector('.pack-cover');
+        const openButton = document.querySelector('.open-button');
+        const cardViewer = document.querySelector('.card-viewer');
+        const cardContainer = document.querySelector('.card-container');
+        const cardCounter = document.querySelector('.card-counter');
+        const progressFill = document.querySelector('.progress-fill');
+        const summaryScreen = document.querySelector('.summary-screen');
+        const summaryCards = document.querySelector('.summary-cards');
+        const restartButton = document.querySelector('.restart-button');
+        const swipeArea = document.querySelector('.swipe-area');
+        const tapIndicator = document.querySelector('.tap-indicator');
+        
+        // Sample card data (placeholder)
+        const cardData = [
+            { name: "elmeryem", type: "fighting", rarity: "Common" },
+            { name: "tralajocho", type: "psycho", rarity: "Rare" },
+            { name: "frankalisa", type: "power", rarity: "Common" },
+            { name: "attic", type: "Support", rarity: "Uncommon" },
+            { name: "franklord", type: "power", rarity: "Ultra Rare" },
+            { name: "prolet", type: "support", rarity: "Common" },
+            { name: "celmeryem", type: "fighting", rarity: "Rare" },
+
+        ];
+        
+        let currentCardIndex = 0;
+        let cards = [];
+        let isAnimating = false;
+        
+        // Initialize
+        function init() {
+            // Create cards
+            createCards();
+            
+            // Event listeners
+            openButton.addEventListener('click', openPack);
+            restartButton.addEventListener('click', restart);
+            
+            // Touch events for swiping/tapping
+            let startX = 0;
+            let startY = 0;
+            
+            swipeArea.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+            });
+            
+            swipeArea.addEventListener('touchend', (e) => {
+                const endX = e.changedTouches[0].clientX;
+                const endY = e.changedTouches[0].clientY;
+                
+                // Check if it's more of a horizontal swipe than vertical
+                const xDiff = Math.abs(endX - startX);
+                const yDiff = Math.abs(endY - startY);
+                
+                if (xDiff > yDiff && xDiff > 30) {
+                    // It's a horizontal swipe
+                    if (startX > endX) {
+                        // Swiped left (next)
+                        showNextCard();
+                    }
+                } else if (xDiff < 30 && yDiff < 30) {
+                    // It's more of a tap
+                    showNextCard();
+                }
+            });
+            
+            // Click event for card advancement
+            swipeArea.addEventListener('click', () => {
+                showNextCard();
+            });
+            
+            updateCardCounter();
+            updateProgressBar();
+        }
+        
+        // Create card elements
+        function createCards() {
+            cardData.forEach((card, index) => {
+                // Create main card for viewing
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                
+                // Determine rarity class
+                let rarityClass = 'rarity-common';
+                if (card.rarity === 'Uncommon') rarityClass = 'rarity-uncommon';
+                if (card.rarity === 'Rare') rarityClass = 'rarity-rare';
+                if (card.rarity === 'Ultra Rare') rarityClass = 'rarity-ultra';
+                
+                cardElement.innerHTML = `
+                    <div class="card-top">
+                        <span class="card-name">${card.name}</span>
+                        <span class="card-type">${card.type}</span>
+                    </div>
+                    <div class="card-image">
+                        <img src="${card.name}.png" alt="${card.name}" />
+                        <!-- Placeholder for card image -->
+                        <div class="shine-effect"></div>
+                    </div>
+                    <div class="card-bottom">
+                        <div class="rarity-indicator">
+                            
+                            <div class="rarity-fill ${rarityClass}"></div>
+                        </div>
+                    </div>
+                `;
+                
+                if (index === 0) {
+                    cardElement.classList.add('active');
+                }
+                
+                cardContainer.appendChild(cardElement);
+                cards.push(cardElement);
+                
+                // Create summary card
+                const summaryCard = document.createElement('div');
+                summaryCard.className = 'summary-card';
+                summaryCard.addEventListener('click', () => {
+                    // Show card art nearly fullscreen on click
+                    const cardArt = document.createElement('div');
+                    cardArt.className = 'card-image';
+                    cardArt.innerHTML = `
+                        <img src="${card.name}.png" alt="${card.name}" />
+                        <span class="card-rarity">${card.rarity}</span>
+                    `;
+                    cardArt.className = 'card-art';
+                    
+  
+             
+                    
+
+                    cardArt.addEventListener('click', () => {
+                        document.body.removeChild(cardArt);
+                    });
+                    document.body.appendChild(cardArt);
+                    
+                   
+                });
+                summaryCard.innerHTML = `
+                    <div class="card-mini-image">
+                        <img src="${card.name}.png" alt="${card.name}" />
+                    </div>
+                    <div class="card-mini-name">${card.name}</div>
+                    <div class="card-mini-type">${card.type}</div>
+                `;
+                summaryCards.appendChild(summaryCard);
+            });
+        }
+        
+        // Open pack animation
+        function openPack() {
+            packCover.classList.add('hidden');
+            cards[0].classList.add('bounce');
+            
+            // Hide the button after animation
+            setTimeout(() => {
+                openButton.style.display = 'none';
+            }, 800);
+        }
+        
+        // Show next card
+        function showNextCard() {
+            if (isAnimating) return;
+            
+            if (currentCardIndex < cards.length - 1) {
+                isAnimating = true;
+                
+                // Remove bounce class if present
+                cards[currentCardIndex].classList.remove('bounce');
+                
+                // Animate out current card
+                cards[currentCardIndex].classList.remove('active');
+                cards[currentCardIndex].classList.add('prev');
+                
+                // Move to next card
+                currentCardIndex++;
+                
+                // Animate in next card
+                setTimeout(() => {
+                    cards[currentCardIndex].classList.add('active');
+                    cards[currentCardIndex].classList.add('bounce');
+                    
+                    updateCardCounter();
+                    updateProgressBar();
+                    
+                    isAnimating = false;
+                }, 300);
+            } else {
+                // Show summary screen when reaching the last card
+                showSummary();
+            }
+        }
+        
+        // Show summary screen with confetti
+        function showSummary() {
+            summaryScreen.classList.add('active');
+            createConfetti();
+            tapIndicator.style.display = 'none';
+        }
+        
+        // Create confetti effect
+        function createConfetti() {
+            const colors = ['#f39c12', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = Math.random() * 10 + 5 + 'px';
+                confetti.style.opacity = 1;
+                confetti.style.animation = `confetti-fall ${Math.random() * 3 + 2}s ease forwards`;
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                
+                document.body.appendChild(confetti);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    document.body.removeChild(confetti);
+                }, 5000);
+            }
+        }
+        
+        // Update card counter
+        function updateCardCounter() {
+            cardCounter.textContent = `Card ${currentCardIndex + 1}/${cards.length}`;
+        }
+        
+        // Update progress bar
+        function updateProgressBar() {
+            const progress = ((currentCardIndex) / (cards.length - 1)) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+        
+        // Restart the pack opening
+        function restart() {
+            // Reset states
+            summaryScreen.classList.remove('active');
+            packCover.classList.remove('hidden');
+            openButton.style.display = 'block';
+            tapIndicator.style.display = 'flex';
+            
+            // Reset cards
+            cards.forEach((card, index) => {
+                card.classList.remove('active', 'prev', 'bounce');
+                if (index === 0) {
+                    card.classList.add('active');
+                }
+            });
+            
+            currentCardIndex = 0;
+            updateCardCounter();
+            updateProgressBar();
+        }
+        
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
